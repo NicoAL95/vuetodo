@@ -1,5 +1,6 @@
 <script setup>
 import { ref, onMounted, computed, watch } from 'vue'
+import { addData, readData } from './firebase'
 
 const todos = ref([])
 const name = ref('')
@@ -7,25 +8,55 @@ const name = ref('')
 const input_content = ref('')
 const input_category = ref(null)
 
+const loadDatas = () => {
+  readData()
+    .then((datas) => {
+      console.log(datas);
+      // todos refereces
+      todos.value.push(...datas)
+    })
+    .catch((e) => {
+      console.error(e);
+    })
+}
+
 const todo_asc = computed(() => todos.value.sort((a, b) => {
-  return b.createdAt - a.createdAt
+  return b.data.createdAt - a.data.createdAt
 }))
 
 const addTodo = () => {
   if (input_content.value.trim() === '' || input_category.value === null) {
     return
   }
-  
-  todos.value.push({
-    content: input_content.value,
-    category: input_category.value,
-    done: false,
-    createdAt: new Date().getTime()
-  })
+
+  const content = input_content.value
+  const category = input_category.value
+  const status = false
+  const time = new Date().getTime()
+
+  addData(content, category, status, time)
 
   input_content.value = ''
   input_category.value = ''
 }
+
+// Baca Data
+
+// const addTodo = () => {
+//   if (input_content.value.trim() === '' || input_category.value === null) {
+//     return
+//   }
+  
+//   todos.value.push({
+//     content: input_content.value,
+//     category: input_category.value,
+//     done: false,
+//     createdAt: new Date().getTime()
+//   })
+
+//   input_content.value = ''
+//   input_category.value = ''
+// }
 
 const removeTodo = todo => {
   todos.value = todos.value.filter(t => t !== todo)
@@ -41,8 +72,9 @@ watch(name, (newVal) => {
 
 
 onMounted(() => {
+  loadDatas()
   name.value = localStorage.getItem('name') || ''
-  todos.value = JSON.parse(localStorage.getItem('todos')) || []
+  // todos.value = JSON.parse(localStorage.getItem('todos')) || []
 })
 
 </script>
@@ -74,7 +106,7 @@ onMounted(() => {
           v-model="input_content" 
         />
         
-        <h4>Pick a category</h4>
+        <h4 @click="readData">Pick a category</h4>
         
         <div class="options">
 
@@ -114,15 +146,15 @@ onMounted(() => {
     <section class="todo-list">
       <h3>Todo List</h3>
       <div class="list">
-        <div v-for="(todo, i) in todo_asc" :class="`todo-item ${todo.done && 'done'}`" :key="i">
+        <div v-for="(todo, i) in todo_asc" :class="`todo-item ${todo.data.done && 'done'}`" :key="i">
 
             <label>
-              <input type="checkbox" v-model="todo.done" />
-              <span :class="`bubble ${todo.category}`"></span>
+              <input type="checkbox" v-model="todo.data.done" />
+              <span :class="`bubble ${todo.data.category}`"></span>
             </label>
 
             <div class="todo-content">
-              <input type="text" v-model="todo.content" />
+              <input type="text" v-model="todo.data.content" />
             </div>
 
             <div class="actions">
