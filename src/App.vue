@@ -1,6 +1,6 @@
 <script setup>
 import { ref, onMounted, computed, watch } from 'vue'
-import { addData, readData } from './firebase'
+import { createData, readData, deleteData, updateData } from './firebase'
 
 const todos = ref([])
 const name = ref('')
@@ -11,7 +11,6 @@ const input_category = ref(null)
 const loadDatas = () => {
   readData()
     .then((datas) => {
-      console.log(datas);
       // todos refereces
       todos.value.push(...datas)
     })
@@ -34,10 +33,24 @@ const addTodo = () => {
   const status = false
   const time = new Date().getTime()
 
-  addData(content, category, status, time)
+  createData(content, category, status, time)
+  pushArr()
 
   input_content.value = ''
   input_category.value = ''
+}
+
+// Add Latest element to DOM
+const pushArr = () => {
+  
+  readData()
+    .then((datas) => {
+      todos.value.push(...datas)
+      console.log("Ini todos: ", todos.value);
+    })
+    .catch((e) => {
+      console.error(e);
+    })
 }
 
 // Baca Data
@@ -60,10 +73,14 @@ const addTodo = () => {
 
 const removeTodo = todo => {
   todos.value = todos.value.filter(t => t !== todo)
+  deleteData(todo.id)
 }
 
 watch(todos, (newVal) => {
-  localStorage.setItem('todos', JSON.stringify(newVal))
+  newVal.forEach((todo, i) => {
+    const { id, data } = todo
+    updateData(id, data);
+  })
 }, { deep: true })
 
 watch(name, (newVal) => {
@@ -76,6 +93,10 @@ onMounted(() => {
   name.value = localStorage.getItem('name') || ''
   // todos.value = JSON.parse(localStorage.getItem('todos')) || []
 })
+
+const iseng = () => {
+  console.log(todos.value.length);
+}
 
 </script>
 
@@ -136,7 +157,6 @@ onMounted(() => {
 
           <input
             type="submit" 
-            value="Add todo" 
           />
 
       </form>
@@ -144,7 +164,8 @@ onMounted(() => {
     </section>
 
     <section class="todo-list">
-      <h3>Todo List</h3>
+      <h3
+            @click="iseng">Todo List</h3>
       <div class="list">
         <div v-for="(todo, i) in todo_asc" :class="`todo-item ${todo.data.done && 'done'}`" :key="i">
 

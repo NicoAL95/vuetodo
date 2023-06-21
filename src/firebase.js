@@ -1,5 +1,5 @@
 import { initializeApp } from "firebase/app";
-import { getFirestore, collection, addDoc, getDocs } from "firebase/firestore";
+import { getFirestore, collection, addDoc, getDocs, doc, deleteDoc, updateDoc } from "firebase/firestore";
 
 const firebaseConfig = {
     apiKey: "AIzaSyBPrRZm025ocjnjJFofuH-cFAPHKIa0nLg",
@@ -20,7 +20,7 @@ const db = getFirestore(app)
 const collectName = "tolists"
 
 // Create Data
-const addData = async ( content, category, status, time ) => {
+const createData = async ( content, category, status, time ) => {
     try {
         const docRef = await addDoc(collection(db, collectName), {
             content: content,
@@ -35,6 +35,9 @@ const addData = async ( content, category, status, time ) => {
 }
 
 // Delete Data
+const deleteData = async (id) => {
+    await deleteDoc(doc(db, collectName, id))
+}
 
 // Read Data
 const readData = async () => {
@@ -47,4 +50,14 @@ const readData = async () => {
     return allDatas
 }
 
-export { addData, readData }
+// Update Data
+const updateData = async (id, newCont) => {
+    try {
+        const docRef = doc(db, collectName, id)
+        await updateDoc(docRef, newCont)
+    } catch (e) {
+        console.log(e);
+    }
+}
+
+export { createData, readData, updateData, deleteData }
