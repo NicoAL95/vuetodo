@@ -1,5 +1,6 @@
 <script setup>
 import { ref, onMounted, computed, watch } from 'vue'
+import { createData, readData, deleteData, updateData } from './firebase'
 
 const todos = ref([])
 const name = ref('')
@@ -7,42 +8,71 @@ const name = ref('')
 const input_content = ref('')
 const input_category = ref(null)
 
+// Load data from database
+const loadDatas = () => {
+
+  // Call from firebase
+  readData()
+    .then((datas) => {
+      // assign all datas from database to todos array
+      todos.value = datas
+    })
+    .catch((e) => {
+      console.error(e);
+    })
+}
+
+// Compute sorting
 const todo_asc = computed(() => todos.value.sort((a, b) => {
-  return b.createdAt - a.createdAt
+  return b.data.createdAt - a.data.createdAt
 }))
 
+// Add new list to database
 const addTodo = () => {
   if (input_content.value.trim() === '' || input_category.value === null) {
     return
   }
-  
-  todos.value.push({
-    content: input_content.value,
-    category: input_category.value,
-    done: false,
-    createdAt: new Date().getTime()
-  })
 
+  const content = input_content.value
+  const category = input_category.value
+  const status = false
+  const time = new Date().getTime()
+
+  // Insert new data to database
+  createData(content, category, status, time)
+  // Call load datas function to refresh array
+  loadDatas()
+
+  // Make this value below to empty
   input_content.value = ''
   input_category.value = ''
 }
 
+// Remove data
 const removeTodo = todo => {
+  // Filter data 
   todos.value = todos.value.filter(t => t !== todo)
+  // Delete data from id
+  deleteData(todo.id)
 }
 
+// Watch array changes
 watch(todos, (newVal) => {
-  localStorage.setItem('todos', JSON.stringify(newVal))
+  newVal.forEach((todo, i) => {
+    const { id, data } = todo
+    updateData(id, data);
+  })
 }, { deep: true })
 
+// Watch name changes
 watch(name, (newVal) => {
 	localStorage.setItem('name', newVal)
 })
 
-
+// Run some function when render the page
 onMounted(() => {
+  loadDatas()
   name.value = localStorage.getItem('name') || ''
-  todos.value = JSON.parse(localStorage.getItem('todos')) || []
 })
 
 </script>
@@ -74,7 +104,7 @@ onMounted(() => {
           v-model="input_content" 
         />
         
-        <h4>Pick a category</h4>
+        <h4 @click="readData">Pick a category</h4>
         
         <div class="options">
 
@@ -104,7 +134,6 @@ onMounted(() => {
 
           <input
             type="submit" 
-            value="Add todo" 
           />
 
       </form>
@@ -114,15 +143,15 @@ onMounted(() => {
     <section class="todo-list">
       <h3>Todo List</h3>
       <div class="list">
-        <div v-for="(todo, i) in todo_asc" :class="`todo-item ${todo.done && 'done'}`" :key="i">
+        <div v-for="(todo, i) in todo_asc" :class="`todo-item ${todo.data.done && 'done'}`" :key="i">
 
             <label>
-              <input type="checkbox" v-model="todo.done" />
-              <span :class="`bubble ${todo.category}`"></span>
+              <input type="checkbox" v-model="todo.data.done" />
+              <span :class="`bubble ${todo.data.category}`"></span>
             </label>
 
             <div class="todo-content">
-              <input type="text" v-model="todo.content" />
+              <input type="text" v-model="todo.data.content" />
             </div>
 
             <div class="actions">
