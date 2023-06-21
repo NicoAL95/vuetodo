@@ -8,21 +8,26 @@ const name = ref('')
 const input_content = ref('')
 const input_category = ref(null)
 
+// Load data from database
 const loadDatas = () => {
+
+  // Call from firebase
   readData()
     .then((datas) => {
-      // todos refereces
-      todos.value.push(...datas)
+      // assign all datas from database to todos array
+      todos.value = datas
     })
     .catch((e) => {
       console.error(e);
     })
 }
 
+// Compute sorting
 const todo_asc = computed(() => todos.value.sort((a, b) => {
   return b.data.createdAt - a.data.createdAt
 }))
 
+// Add new list to database
 const addTodo = () => {
   if (input_content.value.trim() === '' || input_category.value === null) {
     return
@@ -33,49 +38,25 @@ const addTodo = () => {
   const status = false
   const time = new Date().getTime()
 
+  // Insert new data to database
   createData(content, category, status, time)
-  pushArr()
+  // Call load datas function to refresh array
+  loadDatas()
 
+  // Make this value below to empty
   input_content.value = ''
   input_category.value = ''
 }
 
-// Add Latest element to DOM
-const pushArr = () => {
-  
-  readData()
-    .then((datas) => {
-      todos.value.push(...datas)
-      console.log("Ini todos: ", todos.value);
-    })
-    .catch((e) => {
-      console.error(e);
-    })
-}
-
-// Baca Data
-
-// const addTodo = () => {
-//   if (input_content.value.trim() === '' || input_category.value === null) {
-//     return
-//   }
-  
-//   todos.value.push({
-//     content: input_content.value,
-//     category: input_category.value,
-//     done: false,
-//     createdAt: new Date().getTime()
-//   })
-
-//   input_content.value = ''
-//   input_category.value = ''
-// }
-
+// Remove data
 const removeTodo = todo => {
+  // Filter data 
   todos.value = todos.value.filter(t => t !== todo)
+  // Delete data from id
   deleteData(todo.id)
 }
 
+// Watch array changes
 watch(todos, (newVal) => {
   newVal.forEach((todo, i) => {
     const { id, data } = todo
@@ -83,20 +64,16 @@ watch(todos, (newVal) => {
   })
 }, { deep: true })
 
+// Watch name changes
 watch(name, (newVal) => {
 	localStorage.setItem('name', newVal)
 })
 
-
+// Run some function when render the page
 onMounted(() => {
   loadDatas()
   name.value = localStorage.getItem('name') || ''
-  // todos.value = JSON.parse(localStorage.getItem('todos')) || []
 })
-
-const iseng = () => {
-  console.log(todos.value.length);
-}
 
 </script>
 
@@ -164,8 +141,7 @@ const iseng = () => {
     </section>
 
     <section class="todo-list">
-      <h3
-            @click="iseng">Todo List</h3>
+      <h3>Todo List</h3>
       <div class="list">
         <div v-for="(todo, i) in todo_asc" :class="`todo-item ${todo.data.done && 'done'}`" :key="i">
 
