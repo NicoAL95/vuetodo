@@ -41,13 +41,18 @@ const deleteData = async (id) => {
 
 // Read Data
 const readData = async () => {
-    const queryDatas = await getDocs(collection(db, collectName))
-    const allDatas = []
+    try {
+        const queryDatas = await getDocs(collection(db, collectName))
+        const allDatas = []
 
-    queryDatas.forEach((doc) => {
-        allDatas.push({ id: doc.id, data: doc.data() })
-    })
-    return allDatas
+        queryDatas.forEach((doc) => {
+            allDatas.push({ id: doc.id, data: doc.data() })
+        })
+        return allDatas
+    } catch (error) {
+        console.error(error);
+        return null;
+    }
 }
 
 // Update Data

@@ -1,5 +1,14 @@
 <script setup>
 
+const emit = defineEmits(['handle-remove']);
+const props = defineProps({ 
+    items: { type: Array, required: true }
+ });
+
+function handleRemove(index){
+    emit('remove-todo', index)
+};
+
 </script>
 
 <template>
@@ -23,17 +32,6 @@
 
 <script>
     export default {
-        name: "List",
-        props: {
-            items: {
-                type: Array,
-                required: true
-            }
-        },
-        methods: {
-            handleRemove(index){
-                this.$emit('remove-todo', index)
-            }
-        }
+        name: "List"
     }
 </script>

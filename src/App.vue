@@ -1,4 +1,9 @@
 <script setup>
+
+import Layout from './layout/Layout.vue';
+import List from './components/List.vue';
+import FormVue from './components/Form.vue';
+
 import { ref, onMounted, computed, watch } from 'vue'
 import { createData, readData, deleteData, updateData } from './firebase'
 
@@ -22,33 +27,30 @@ const todo_asc = computed(() => todos.value.sort((a, b) => {
 }));
 
 // Add new list to database
-const addTodo = (content, category) => {
-  if (content.trim() === '' || category === null) {
+const addTodo = async (content, category) => {
+  if (content.value.trim() === '' || category.value === null) {
     return
   }
 
-  const content_data = content
-  const category_data = category
+  const content_data = content.value
+  const category_data = category.value
   const status = false
   const time = new Date().getTime()
 
   // Insert new data to database
-  createData(content_data, category_data, status, time)
+  await createData(content_data, category_data, status, time)
   // Call load datas function to refresh array
   loadDatas()
-  console.log('Helloww');
-
-  // Make this value below to empty || Ini dari component Form
-  input_content.value = ''
-  input_category.value = ''
 };
 
 // Remove data
-const removeTodo = todo => {
+const removeTodo = async todo => {
   // Filter data 
-  todos.value = todos.value.filter(t => t !== todo)
+  // todos.value = todos.value.filter(t => t !== todo)
+
   // Delete data from id
-  deleteData(todo.id)
+  await deleteData(todo.id)
+  loadDatas()
 };
 
 // Watch array changes
@@ -74,48 +76,37 @@ onMounted(async () => {
 
 <template>
 
-  <main class="app">
+  <Layout>
+    <main class="app">
 
-    <section class="greeting">
-      <h2 class="title">
-        What's up, 
-        <input 
-          type="text" 
-          id="name" 
-          placeholder="Name here" 
-          v-model="name" 
-        />
-      </h2>
-    </section>
+      <section class="greeting">
+        <h2 class="title">
+          What's up, 
+          <input 
+            type="text" 
+            id="name" 
+            placeholder="Name here" 
+            v-model="name" 
+          />
+        </h2>
+      </section>
 
-    <section class="create-todo">
-      <h3>Create ToDo</h3>
+      <section class="create-todo">
+        <h3>Create ToDo</h3>
 
-      <FormVue @add-todo="addTodo"/>
+        <FormVue @add-todo="addTodo"/>
 
-    </section>
+      </section>
 
-    <section class="todo-list">
-      <h3>Todo List</h3>
-      <div class="list">
-        <List :items="todo_asc" @remove-todo="removeTodo"/>
-      </div>
-    </section>
+      <section class="todo-list">
+        <h3>Todo List</h3>
+        <div class="list">
+          <List :items="todo_asc" @remove-todo="removeTodo"/>
+        </div>
+      </section>
 
-  </main>
+      </main>
+
+  </Layout>
 
 </template>
-
-<script>
-
-import List from './components/List.vue';
-import FormVue from './components/Form.vue';
-
-components: {
-  List,
-  FormVue
-}
-
-</script>
-
-

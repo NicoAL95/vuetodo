@@ -1,11 +1,20 @@
 <script setup>
+
 import { ref } from 'vue';
+
+const emit = defineEmits(['add-todo'])
+
 const input_content = ref('')
 const input_category = ref(null);
+
+function handleAdd() {
+      emit('add-todo', input_content, input_category);
+  }
+
 </script>
 
 <template>
-    <form @submit.prevent="handleAdd(input_content, input_category)">
+    <form @submit.prevent="handleAdd">
         <h4>What's on your todo list?</h4>  
         <input 
           type="text" 
@@ -50,13 +59,6 @@ const input_category = ref(null);
 
 <script>
 export default {
-    name: "FormVue",
-    methods: {
-      handleAdd(content, category) {
-        this.$emit('add-todo', content, category);
-        input_content.value = ''
-        input_category.value = ''
-    }
-  }
+    name: "FormVue"
 }
 </script>
